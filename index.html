@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI YouTube Video Finder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF0000;
+            --secondary: #4285F4;
+            --dark: #202124;
+            --light: #f8f9fa;
+            --gray: #606060;
+            --success: #34A853;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: var(--dark);
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 1.5rem 2rem;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            padding: 2rem;
+        }
+        
+        .input-section {
+            margin-bottom: 2rem;
+            animation: slideUp 0.6s ease-out 0.2s both;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        #searchQuery {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            min-height: 120px;
+            resize: none;
+        }
+        
+        #searchQuery:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+            outline: none;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        button {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        #searchBtn {
+            background: var(--primary);
+            color: white;
+        }
+        
+        #searchBtn:hover {
+            background: #e00000;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255, 0, 0, 0.2);
+        }
+        
+        #voiceBtn {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        #voiceBtn:hover {
+            background: #3367d6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(66, 133, 244, 0.2);
+        }
+        
+        button:disabled {
+            background: #cccccc;
+            transform: none !important;
+            box-shadow: none !important;
+            cursor: not-allowed;
+        }
+        
+        .filter-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--light);
+            border-radius: 8px;
+        }
+        
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .filter-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+        
+        .filter-item label {
+            font-size: 0.9rem;
+        }
+        
+        select {
+            padding: 0.3rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            display: none;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary);
+            margin: 0 auto 1rem;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            color: #d32f2f;
+            background-color: #fde7e7;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        
+        .results {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .video-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            display: flex;
+            transition: all 0.3s;
+            animation: fadeInUp 0.5s ease-out;
+            border: 1px solid #eee;
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .video-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+        }
+        
+        .video-thumbnail {
+            width: 180px;
+            height: 135px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        
+        .video-info {
+            padding: 1.2rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .video-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+            font-size: 1.1rem;
+        }
+        
+        .video-channel {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 0.8rem;
+        }
+        
+        .video-meta {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-bottom: 1rem;
+        }
+        
+        .ai-analysis {
+            background: var(--light);
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-top: auto;
+            font-size: 0.9rem;
+            border-left: 3px solid var(--secondary);
+            animation: fadeIn 0.6s;
+        }
+        
+        .ai-analysis strong {
+            color: var(--dark);
+        }
+        
+        .watch-btn {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s;
+            align-self: flex-start;
+        }
+        
+        .watch-btn:hover {
+            background: #e00000;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255, 0, 0, 0.2);
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(66, 133, 244, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); }
+        }
+        
+        .voice-status {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            color: var(--gray);
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .video-card {
+                flex-direction: column;
+            }
+            
+            .video-thumbnail {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 16/9;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>MOBI AI YouTube Video Finder</h1>
+            <p class="subtitle">VidGenius: Discover Perfect YouTube Videos in Seconds</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <div class="search-box">
+                    <textarea id="searchQuery" placeholder="Type your search query here or use voice input..."></textarea>
+                    <p id="voiceStatus" class="voice-status"></p>
+                </div>
+                
+                <div class="filter-section">
+                    <div class="filter-item">
+                        <input type="checkbox" id="durationFilter" checked>
+                        <label for="durationFilter">4-20 minutes</label>
+                    </div>
+                    <div class="filter-item">
+                        <input type="checkbox" id="recentFilter" checked>
+                        <label for="recentFilter">Last 14 days</label>
+                    </div>
+                    <div class="filter-item">
+                        <label for="resultCount">Results:</label>
+                        <select id="resultCount">
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="20">20</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button id="searchBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                        </svg>
+                        Search Videos
+                    </button>
+                    <button id="voiceBtn" class="pulse">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M3.5 6.5A.5.5 0 0 1 4 7v1a4 4 0 0 0 8 0V7a.5.5 0 0 1 1 0v1a5 5 0 0 1-4.5 4.975V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 .5-.5z"/>
+                            <path d="M10 8a2 2 0 1 1-4 0V3a2 2 0 1 1 4 0v5zM8 0a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V3a3 3 0 0 0-3-3z"/>
+                        </svg>
+                        Voice Search
+                    </button>
+                </div>
+            </div>
+            
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p>Searching YouTube and analyzing videos with AI...</p>
+            </div>
+            
+            <div class="error" id="errorMessage"></div>
+            
+            <div class="results" id="resultsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        // API Keys
+        const YOUTUBE_API_KEY = 'AIzaSyBgCZTMsAPP9GDCOab0--GeNRsnXTQLwzE';
+        const GEMINI_API_KEY = 'AIzaSyAKJnybomyTmuNSlQy5CvDFNTfiLqZw7JI';
+        
+        // DOM Elements
+        const searchQuery = document.getElementById('searchQuery');
+        const searchBtn = document.getElementById('searchBtn');
+        const voiceBtn = document.getElementById('voiceBtn');
+        const durationFilter = document.getElementById('durationFilter');
+        const recentFilter = document.getElementById('recentFilter');
+        const resultCount = document.getElementById('resultCount');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const errorMessage = document.getElementById('errorMessage');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const voiceStatus = document.getElementById('voiceStatus');
+        
+        // Check microphone permission status
+        let microphoneAllowed = false;
+        
+        // Initialize speech recognition
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+        
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = () => {
+                voiceBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M3.5 6.5A.5.5 0 0 1 4 7v1a4 4 0 0 0 8 0V7a.5.5 0 0 1 1 0v1a5 5 0 0 1-4.5 4.975V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 .5-.5z"/>
+                        <path d="M10 8a2 2 0 1 1-4 0V3a2 2 0 1 1 4 0v5zM8 0a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V3a3 3 0 0 0-3-3z"/>
+                    </svg>
+                    Listening...`;
+                voiceBtn.classList.add('pulse');
+                voiceStatus.textContent = "Listening... Speak now";
+                voiceStatus.style.display = "block";
+                voiceStatus.style.color = "var(--success)";
+            };
+            
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                searchQuery.value = transcript;
+                voiceStatus.textContent = "Voice input received";
+                resetVoiceButton();
+            };
+            
+            recognition.onerror = (event) => {
+                if (event.error === 'not-allowed') {
+                    showError('Microphone access was denied. Please allow microphone access in your browser settings.');
+                    voiceStatus.textContent = "Microphone access denied";
+                    voiceStatus.style.color = "var(--primary)";
+                } else {
+                    showError('Voice recognition error: ' + event.error);
+                    voiceStatus.textContent = "Error: " + event.error;
+                    voiceStatus.style.color = "var(--primary)";
+                }
+                resetVoiceButton();
+            };
+            
+            recognition.onend = () => {
+                if (voiceBtn.textContent.includes("Listening")) {
+                    voiceStatus.textContent = "Listening ended";
+                    voiceStatus.style.color = "var(--gray)";
+                    resetVoiceButton();
+                }
+            };
+        } else {
+            voiceBtn.disabled = true;
+            voiceBtn.title = 'Speech recognition not supported in this browser';
+        }
+        
+        function resetVoiceButton() {
+            voiceBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M3.5 6.5A.5.5 0 0 1 4 7v1a4 4 0 0 0 8 0V7a.5.5 0 0 1 1 0v1a5 5 0 0 1-4.5 4.975V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 .5-.5z"/>
+                    <path d="M10 8a2 2 0 1 1-4 0V3a2 2 0 1 1 4 0v5zM8 0a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V3a3 3 0 0 0-3-3z"/>
+                </svg>
+                Voice Search`;
+            voiceBtn.classList.remove('pulse');
+        }
+        
+        // Event Listeners
+        searchBtn.addEventListener('click', searchVideos);
+        voiceBtn.addEventListener('click', startVoiceRecognition);
+        searchQuery.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                searchVideos();
+            }
+        });
+        
+        // Request microphone permission on first voice button click
+        voiceBtn.addEventListener('mousedown', async (e) => {
+            if (!microphoneAllowed && navigator.mediaDevices) {
+                try {
+                    await navigator.mediaDevices.getUserMedia({ audio: true });
+                    microphoneAllowed = true;
+                } catch (err) {
+                    showError('Please allow microphone access to use voice search');
+                    voiceStatus.textContent = "Microphone access required";
+                    voiceStatus.style.color = "var(--primary)";
+                }
+            }
+        });
+        
+        // Functions
+        function startVoiceRecognition() {
+            if (!recognition) {
+                showError('Speech recognition not supported in your browser');
+                return;
+            }
+            
+            if (!microphoneAllowed) {
+                showError('Please allow microphone access first');
+                return;
+            }
+            
+            try {
+                recognition.start();
+            } catch (error) {
+                showError('Error starting voice recognition: ' + error.message);
+            }
+        }
+        
+        async function searchVideos() {
+            const query = searchQuery.value.trim();
+            
+            if (!query) {
+                showError('Please enter a search query');
+                return;
+            }
+            
+            // Show loading indicator
+            loadingIndicator.style.display = 'block';
+            errorMessage.style.display = 'none';
+            resultsContainer.innerHTML = '';
+            
+            try {
+                // Get videos from YouTube API
+                const videos = await fetchYouTubeVideos(query);
+                
+                // Analyze videos with Gemini
+                const analyzedVideos = await analyzeVideosWithAI(videos, query);
+                
+                // Display results
+                displayResults(analyzedVideos);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+        
+        async function fetchYouTubeVideos(query) {
+            const maxResults = resultCount.value;
+            const videoDuration = durationFilter.checked ? 'medium' : 'any';
+            const publishedAfter = recentFilter.checked ? 
+                new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString() : '';
+            
+            let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=${maxResults}&key=${YOUTUBE_API_KEY}`;
+            
+            if (videoDuration) {
+                url += `&videoDuration=${videoDuration}`;
+            }
+            
+            if (publishedAfter) {
+                url += `&publishedAfter=${publishedAfter}`;
+            }
+            
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`YouTube API error: ${response.status} ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            
+            if (!data.items || data.items.length === 0) {
+                throw new Error('No videos found matching your criteria');
+            }
+            
+            return data.items.map(item => ({
+                id: item.id.videoId,
+                title: item.snippet.title,
+                channel: item.snippet.channelTitle,
+                publishedAt: item.snippet.publishedAt,
+                thumbnail: item.snippet.thumbnails.medium ? item.snippet.thumbnails.medium.url : item.snippet.thumbnails.default.url,
+                description: item.snippet.description
+            }));
+        }
+        
+        async function analyzeVideosWithAI(videos, query) {
+            // Prepare prompt for Gemini
+            const videoTitles = videos.map((v, i) => `${i+1}. ${v.title}`).join('\n');
+            
+            const prompt = `
+            Analyze these YouTube video titles for relevance to the search query: "${query}".
+            For each video, provide:
+            1. A relevance score from 1-10 (10 being most relevant)
+            2. A brief reason for the score (20-30 words)
+            3. 2-3 characteristics/tags that describe the content
+            
+            Return your analysis in this exact JSON format:
+            {
+                "analysis": [
+                    {
+                        "originalIndex": 0,
+                        "relevanceScore": 8,
+                        "reason": "Highly relevant because...",
+                        "characteristics": ["tutorial", "beginner-friendly", "hands-on"]
+                    },
+                    ...other videos
+                ]
+            }
+            
+            Video Titles:
+            ${videoTitles}
+            `;
+            
+            try {
+                // Call Gemini API
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: prompt
+                            }]
+                        }]
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                const geminiResponse = data.candidates[0].content.parts[0].text;
+                
+                // Extract JSON from response
+                const jsonStart = geminiResponse.indexOf('{');
+                const jsonEnd = geminiResponse.lastIndexOf('}') + 1;
+                const jsonString = geminiResponse.slice(jsonStart, jsonEnd);
+                
+                let analysis;
+                try {
+                    analysis = JSON.parse(jsonString).analysis;
+                } catch (e) {
+                    console.error('Failed to parse AI response:', jsonString);
+                    throw new Error('AI analysis failed - could not parse response');
+                }
+                
+                // Combine YouTube data with AI analysis
+                return videos.map((video, index) => {
+                    const aiData = analysis.find(a => a.originalIndex === index) || {
+                        relevanceScore: 5,
+                        reason: 'AI analysis not available for this video',
+                        characteristics: []
+                    };
+                    
+                    return {
+                        ...video,
+                        ...aiData
+                    };
+                }).sort((a, b) => b.relevanceScore - a.relevanceScore);
+                
+            } catch (error) {
+                console.error('AI analysis failed:', error);
+                return videos.map(video => ({
+                    ...video,
+                    relevanceScore: 5,
+                    reason: 'AI analysis unavailable',
+                    characteristics: []
+                }));
+            }
+        }
+        
+        function displayResults(videos) {
+            resultsContainer.innerHTML = '';
+            
+            if (videos.length === 0) {
+                showError('No videos found matching your criteria');
+                return;
+            }
+            
+            videos.forEach((video, index) => {
+                const videoCard = document.createElement('div');
+                videoCard.className = 'video-card';
+                videoCard.style.animationDelay = `${index * 0.1}s`;
+                
+                const publishedDate = new Date(video.publishedAt).toLocaleDateString();
+                const duration = durationFilter.checked ? '4-20 min' : 'Any duration';
+                
+                videoCard.innerHTML = `
+                    <img src="${video.thumbnail}" alt="Thumbnail" class="video-thumbnail">
+                    <div class="video-info">
+                        <div class="video-title">${video.title}</div>
+                        <div class="video-channel">${video.channel}</div>
+                        <div class="video-meta">
+                            <span>Published: ${publishedDate}</span>
+                            <span>Duration: ${duration}</span>
+                            <span>Relevance: ${video.relevanceScore}/10</span>
+                        </div>
+                        <div class="ai-analysis">
+                            <strong>AI Analysis:</strong> ${video.reason}
+                            ${video.characteristics && video.characteristics.length > 0 ? 
+                                `<br><strong>Tags:</strong> ${video.characteristics.join(', ')}` : ''}
+                        </div>
+                        <a href="https://youtube.com/watch?v=${video.id}" target="_blank" class="watch-btn">
+                            Watch on YouTube
+                        </a>
+                    </div>
+                `;
+                
+                resultsContainer.appendChild(videoCard);
+            });
+        }
+        
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => {
+                errorMessage.style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                    errorMessage.style.animation = '';
+                }, 500);
+            }, 10);
+        }
+    </script>
+</body>
+</html>
