@@ -1,9 +1,11 @@
 #### 🔍 VidGenius: AI-Powered YouTube Video Finder
 
 Stop scrolling—start watching!
+
+
 TRY-https://6820972894ae5e7f0aef60b1--wondrous-mermaid-9d86a2.netlify.app/
+
 Find the perfect YouTube videos in seconds using AI magic. VidGenius combines YouTube’s vast library with Gemini AI’s analysis to surface the most relevant, high-quality content tailored to your needs.
-![image](https://github.com/user-attachments/assets/ca5c9ac4-9ef6-4c03-86ba-78878571258c)
 
 ✨ Why VidGenius?
 🎯 Precision search – Filters videos by *relevance, duration (4-20 mins), and freshness (last 14 days)*
@@ -23,9 +25,15 @@ AI hunts through YouTube’s latest videos
 Get a curated list with AI-generated relevance scores
 
 Watch the best match instantly
+
+SCREENSHOTS
+
+![image](https://github.com/user-attachments/assets/ca5c9ac4-9ef6-4c03-86ba-78878571258c)
+
 🌟 Features
 
 Feature	Description
+
 Smart Filters	4-20 min videos • Last 14 days • Top 20 results
 AI Analysis	Gemini-powered title scoring (1-10) with reasoning
 Voice Input	Speech-to-text support (Chrome/Edge)
